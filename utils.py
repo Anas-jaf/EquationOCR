@@ -160,10 +160,58 @@ def dict_to_equation(node):
             lower_child = dict_to_equation(node["children"][1])
             function_child = dict_to_equation(node["children"][2])
             return f"\\lim_{{ {var_child} \\to {lower_child}^-}} ({function_child})"
-                
-                        
+        
+        elif node["type"] == "derivation":                
+            var_child = dict_to_equation(node["children"][0])
+            function_child = dict_to_equation(node["children"][1])
+            # if len(children) > 2:
+            return f"\\frac{{\\mathrm{{d}}}}{{\\mathrm{{d}}{var_child}}}{{({function_child})}}"
+        
+        elif node["type"] == "nderivation":
+            pow_child = dict_to_equation(node["children"][0])
+            var_child = dict_to_equation(node["children"][1])
+            function_child = dict_to_equation(node["children"][2])
+            return f"\\frac{{d^{{{pow_child}}}}}{{d{var_child}^{{{pow_child}}}}}{{{function_child}}}"
+            
+        elif node["type"] == "integral":
+            function_child = dict_to_equation(node["children"][0])
+            var_child = dict_to_equation(node["children"][1])            
+            return f"\\int {function_child} d{var_child}"
+
+        elif node["type"] == "definiteintegral":
+            lower_limit = dict_to_equation(node["children"][0])
+            upper_limit = dict_to_equation(node["children"][1])
+            function_child = dict_to_equation(node["children"][2])
+            var_child = dict_to_equation(node["children"][3])
+            return  f"\\int_{{{lower_limit}}}^{{{upper_limit}}} {function_child} d{var_child}"
+        
+        elif node["type"] == "definitesigma":
+            var_child = dict_to_equation(node["children"][0])
+            start_child = dict_to_equation(node["children"][1])
+            end_child = dict_to_equation(node["children"][2])
+            function_child = dict_to_equation(node["children"][3])
+            return f"\\sum_{{{var_child}={start_child}}}^{{{end_child}}} ({function_child})"
+
+        elif node["type"] == "derivation_diff":
+            var_child1 = dict_to_equation(node["children"][0])
+            var_child2 = dict_to_equation(node["children"][1])
+            return f"\\frac{{\\mathrm{{d}}{var_child2}}}{{\\mathrm{{d}}{var_child1}}}"
+        
+        elif node["type"] == "differential":
+            var_child = dict_to_equation(node["children"][0])
+            return f"\\mathrm{{d}}{var_child}"
+            
+        elif node["type"] == "derivationprime":
+            var_child = dict_to_equation(node["children"][0])
+            return f"{{{var_child}}}^{{\\prime}}"
+
+        elif node["type"] == "choose":
+            left_value = dict_to_equation(node["children"][0])
+            right_value = dict_to_equation(node["children"][1])
+            return f"{{{{{left_value}}} \\choose {{{right_value}}}}}"
+
     elif node["type"] == "const":
-        return str(node["value"])
+        return node["value"]
     elif node["type"] == "var":
         if node["value"] == 'π':
           return '\pi'
@@ -171,9 +219,6 @@ def dict_to_equation(node):
           return '\mathrm{e}' 
         elif node["value"] == '∞':
             return '\infty'
-        # elif '_' in node['value']:
-        #   return node['value']
-        
         return node["value"]
     elif node["type"] == "ellipsis":
         return "..."
