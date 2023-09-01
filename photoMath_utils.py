@@ -1,3 +1,7 @@
+import requests
+import json 
+from requests_toolbelt.multipart.encoder import MultipartEncoder
+
 def dict_to_equation(node):
     if "children" in node:
         children = node["children"]
@@ -222,3 +226,85 @@ def dict_to_equation(node):
         return node["value"]
     elif node["type"] == "ellipsis":
         return "..."
+    
+def image_ocr_photomath(auth , image_path=None , image_content=None):
+    burp0_url = "https://pws.photomath.net:443/v5/process-image-groups?bookpoint=false&problemdb=true&locale=en&locale_allow_missing=false&check_solution=false&multipart=true&documents=true"
+    burp0_headers = {
+            "User-Agent": "Photomath/8.28.0 (Android 9; en; SM-G977N; Build/LMY48Z)",
+            "Authorization": f"Bearer {auth}",
+            "Accept-Encoding": "gzip, deflate"
+            }
+
+    # Create the 'json' part as a dictionary
+    json_data = {
+        "view": {
+                 "height": 200,
+                 "width": 700,
+                 "x": 0,
+                 "y": 0
+                },
+        "metadata": {
+                     "appLanguage": "en",
+                     "appVersion": "8.28.0-936",
+                     "debug": False, "device": "samsung - SM-G977N",
+                     "eventType": "gallery", "imageCollectionOptOut": False,
+                     "location": "JO-AM",
+                     "osVersion": "9",
+                     "platform": "ANDROID",
+                     "scanCounter": 0,
+                     "scanId": "gallery-09bdef3c-49ab-4c6b-b04b-5f53d9ec0192",
+                     "sessionId": "crop-a1fe1f9823024647932bf3acc992e4b0"
+                    },
+        "experiments": {
+                        "spanishMonetization": "Variant2",
+                        "italianMonetization": "Variant1",
+                        "portugueseMonetization": "false",
+                        "inlineAnimations": "Variant1"
+                        },
+        "animatedPreview": True
+    }
+
+    # Serialize the dictionary to JSON and encode it as bytes
+    json_bytes = json.dumps(json_data).encode('utf-8')
+    
+    if not image_content :
+        image_content = open(image_path , 'rb')
+
+    # Create a multipart encoder with auto-generated boundary
+    multipart_encoder = MultipartEncoder(
+        fields={
+            'image': ('Untitled3.jpg', image_content , 'application/octet-stream'),
+            'json': ('json', json_bytes, 'application/json')
+        }
+    )
+
+    burp0_headers['Content-Type'] = multipart_encoder.content_type
+
+    proxies = {"http": "127.0.0.1:8080", "https": "127.0.0.1:8080"}
+
+    response = requests.post(burp0_url, headers=burp0_headers, data=multipart_encoder, proxies=proxies, verify=False)
+
+    json_data = response.json()
+    
+    return json_data
+    # return json_data['result']['groups'][0]['entries'][0]['nodeAction']['node']
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    
